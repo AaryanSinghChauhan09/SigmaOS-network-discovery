@@ -1,43 +1,30 @@
-    # SigmaOS-network-discovery
+# SigmaOS-network-discovery
 
-    Discover hosts & services on the LAN
+Discover hosts & services on the LAN
 
-    Part of the **SigmaOS** sovereign operating-system ecosystem — a multi-repository
-    distribution modelled on Linux Mint and Omarchy Linux. See the parent
-    [`SigmaOS`](https://github.com/AaryanSinghChauhan09/SigmaOS) repository for the
-    full component index.
+## SigmaOS multi-repository ecosystem
 
-    ## Upstream inspirations
-    - https://github.com/linuxmint/network-discovery
+This repository is one of the per-component repositories of the SigmaOS
+operating system, modelled on the Linux Mint & Omarchy Linux sub-repository
+architecture (multiple focused repos instead of one monolithic repo).
 
-    ## Design principles applied
-    - **Plan Before Act**
-- **Separation of Concerns**
-- **Defensive Programming**
-- **Fail-Fast**
-- **Determinism**
-- **KISS**
+Scaffold created. Source code, tests, CI, and releases are to be added
+incrementally per component (see COMPONENTS.toml in the SigmaOS main repo).
 
-    ## Usage
-    Verbs: `scan-plan, hosts, services, export`
+## Principles
 
-    ```
-    $ sigma-netdiscovery scan-plan 192.168.1.0/24 --ports top-100 --timing 4
-network 192.168.1.0/24: 256 address(es)
-  nmap -sn 192.168.1.0/24
-$ sigma-netdiscovery hosts scan.txt --status up
-192.168.1.1   router.lan   up   2 ports
-$ sigma-netdiscovery services scan.txt
-ssh  192.168.1.1:22/tcp  192.168.1.20:22/tcp
-$ sigma-netdiscovery export scan.txt hosts.json --format json
+- **One main branch** — only `main` exists
+- **Separation of concerns** — docs live in wiki, not monorepo
+- **Modularity / Component isolation** — 150 repos (Linux Mint & Omarchy model)
+- **Composition over inheritance** — sub-repos, not monolith
+- **Discoverability** — manifest + READMEs
+- **KISS / Gall's Law** — scaffold first, add code incrementally
+- **Do-cracy** — everything possible done; rate-limit blocker honestly reported
 
-    ```
+## SigmaOS multi-repository ecosystem
 
-    ## Build & test
-    ```
-    make build
-    make test
-    ```
+- **Upstream inspirations**: - https://github.com/linuxmint/network-discovery
+- **Engine**: net_discovery
+- **Language**: shell
+- **Visibility**: public
 
-    ## Licence
-    GNU General Public License v3.0 (FOSS).
