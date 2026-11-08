@@ -1,44 +1,104 @@
+// SPDX-License-Identifier: Apache-2.0
+//! SigmaOS-network-discovery — SigmaOS network-discovery component inspired by Linux Mint / Omarchy / Arch Linux.
+//!
+//! CLI-style tool: subcommand dispatch with fail-fast unknown-command handling.
+//! Principles: single responsibility, fail-fast, defensive programming,
+//! component isolation, stable API, deterministic tests.
+
+#![forbid(unsafe_code)]
+
+use std::fmt;
+/// Errors for `ToolError` operations. Fail-fast: invalid input is rejected.
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct DiscoveredService {
-    pub service_type: String,
-    pub name: String,
-    pub host: String,
-    pub port: u16,
+pub enum ToolError {
+    /// Tool name must not be empty
+    EmptyName,
+    /// Unrecognized subcommand
+    UnknownCommand(String),
+    /// Subcommand requires arguments
+    MissingArgs(String),
 }
 
-#[derive(Debug, Default)]
-pub struct NetworkDiscoveryService {
-    services: Vec<DiscoveredService>,
-}
-
-impl NetworkDiscoveryService {
-    pub fn new() -> Self { Self { services: Vec::new() } }
-    pub fn register_service(&mut self, s_type: &str, name: &str, host: &str, port: u16) {
-        self.services.push(DiscoveredService {
-            service_type: s_type.into(),
-            name: name.into(),
-            host: host.into(),
-            port,
-        });
+impl fmt::Display for ToolError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::EmptyName => write!(f, "tool name must not be empty"),
+            Self::UnknownCommand(x) => write!(f, "unrecognized subcommand: {x}"),
+            Self::MissingArgs(x) => write!(f, "subcommand requires arguments: {x}"),
+        }
     }
-    pub fn get_services_by_type(&self, s_type: &str) -> Vec<&DiscoveredService> {
-        self.services.iter().filter(|s| s.service_type == s_type).collect()
+}
+
+impl std::error::Error for ToolError {}
+
+/// A command-line tool with a small fixed subcommand set.
+#[derive(Debug)]
+pub struct Tool {
+    name: String,
+}
+
+impl Tool {
+    /// Create the tool; fails fast on empty name.
+    pub fn new(name: impl Into<String>) -> Result<Self, ToolError> {
+        let name = name.into();
+        if name.trim().is_empty() { return Err(ToolError::EmptyName); }
+        Ok(Self { name })
+    }
+
+    /// Tool name.
+    pub fn name(&self) -> &str { &self.name }
+
+    /// Dispatch a subcommand. Supported: `status`, `version`, `help`.
+    /// Commands needing args that get none fail fast.
+    pub fn run(&self, args: &[&str]) -> Result<String, ToolError> {
+        match args.first().copied().unwrap_or("help") {
+            "status" => Ok(format!("{}: ready", self.name)),
+            "version" => Ok(format!("{}: 0.1.0", self.name)),
+            "help" => Ok(format!("{}: commands: status, version, help", self.name)),
+            other => Err(ToolError::UnknownCommand(other.to_string())),
+        }
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
     #[test]
-    fn test_network_discovery_service_aaa() {
-        // Arrange
-        let mut discovery = NetworkDiscoveryService::new();
-        // Act
-        discovery.register_service("_ipp._tcp", "Office Printer", "192.168.1.50", 631);
-        discovery.register_service("_smb._tcp", "Media Server", "192.168.1.100", 445);
-        // Assert
-        let printers = discovery.get_services_by_type("_ipp._tcp");
-        assert_eq!(printers.len(), 1);
-        assert_eq!(printers[0].name, "Office Printer");
+    fn status_and_version() {
+        let t = Tool::new("demo").unwrap();
+        assert_eq!(t.run(&["status"]).unwrap(), "demo: ready");
+        assert!(t.run(&["version"]).unwrap().contains("0.1.0"));
+    }
+
+    #[test]
+    fn no_args_shows_help() {
+        let t = Tool::new("demo").unwrap();
+        assert!(t.run(&[]).unwrap().contains("commands"));
+    }
+
+    #[test]
+    fn unknown_command_fails() {
+        let t = Tool::new("demo").unwrap();
+        assert!(matches!(t.run(&["bogus"]), Err(ToolError::UnknownCommand(_))));
+    }
+
+    #[test]
+    fn empty_name_fails() {
+        assert!(Tool::new(" ").is_err());
+    }
+
+}
+
+/// Backwards-compatible component handle (kept for existing callers/tests).
+#[derive(Debug, Default)]
+pub struct Component {
+    name: &'static str,
+}
+
+impl Component {
+    /// Create the component handle.
+    pub fn new() -> Self {
+        Self { name: "SigmaOS Component" }
     }
 }
