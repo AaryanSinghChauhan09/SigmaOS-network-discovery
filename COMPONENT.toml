@@ -1,6 +1,6 @@
 [component]
 name = "SigmaOS-network-discovery"
 tier = 3
-description = "Local mDNS, SSDP, and SMB network discovery daemon for finding shared printers and fileshares"
+description = "Discover hosts & services on the LAN"
 contracts = ['network-discovery-daemon', 'mdns-scanner', 'ssdp-listener']
 upstream_inspirations = ['https://github.com/linuxmint/network-discovery']
